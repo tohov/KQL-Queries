@@ -1,0 +1,18 @@
+// Get Policy assignments and their scopes
+policyresources
+| where type == 'microsoft.authorization/policyassignments'
+| extend properties = parse_json(properties)
+| project PolicyAssignmentScope = properties.scope,
+    subscriptionId,
+    PolicyAssignmentName = name,
+    PolicyDefinitionName = properties.displayName,
+    PolicyDefinitionId = properties.policyDefinitionId
+// join with resource containers table using 'subscriptionId' key
+| join kind=inner (
+    resourcecontainers
+    | where type == 'microsoft.resources/subscriptions' or type == 'microsoft.management/managementgroups'
+    | project subscriptionId, displayName = name
+    ) on subscriptionId
+// list scope, subscription or management group name, subscription id and other information about policies
+| project PolicyAssignmentScope, displayName, subscriptionId, PolicyAssignmentName, PolicyDefinitionName, PolicyDefinitionId
+//| where subscriptionId in ('') //use this to filter by subscription id or leave blank to filter only management groups
