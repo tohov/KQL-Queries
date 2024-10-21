@@ -1,0 +1,12 @@
+// This query will count all policy assignments per predetermined scopes (Management Group or Subscription)
+// Resource group level policy assignments are not included
+policyresources
+| where type == 'microsoft.authorization/policyassignments'
+| summarize PolicyAssignmentCount = count() by Scope = tostring(properties.scope)
+| join kind=leftouter (
+    resourcecontainers
+    | where type in ('microsoft.resources/subscriptions', 'microsoft.management/managementgroups')
+    | project Scope = id, DisplayName = name
+) on Scope
+| project DisplayName = coalesce(DisplayName, "Tenant Root Group"), Scope, PolicyAssignmentCount
+| order by Scope asc
