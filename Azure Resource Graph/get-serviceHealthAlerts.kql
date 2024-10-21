@@ -1,0 +1,21 @@
+// This query will fetch all service health events that are unresolved and sorts data by subscription and event type
+servicehealthresources
+| extend properties
+| project TrackingId = name,
+    subscriptionId,
+    Title = properties.Title,
+    Severity = properties.Level,
+    IncidentStatus = properties.Status,
+    EventType = tostring(properties.EventType),
+    RecommendedActions = properties.RecommendedActions,
+    Header = properties.Header,
+    ImpactedService = properties.Impact.ImpactedService,
+    ImpactedRegion = properties.Impact.ImpactedRegions.ImpactedRegion
+| where IncidentStatus != "Resolved"
+| join kind=inner (
+    resourcecontainers
+    | where type == 'microsoft.resources/subscriptions'
+    | project subscriptionId, displayName = name
+    ) on subscriptionId
+| project TrackingId, displayName, Title, Severity, IncidentStatus, EventType, RecommendedActions, Header, ImpactedService, ImpactedRegion
+| order by displayName asc, EventType asc 
