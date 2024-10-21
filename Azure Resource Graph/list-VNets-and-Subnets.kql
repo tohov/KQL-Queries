@@ -1,3 +1,5 @@
+// This query lists all Virtual Networks with address spaces and their associated subnets with subnet address prefixes
+// Results will also show VNet associated subscription name, and list is sorted by VNet address space and subnet address prefix
 resources
 | where type == 'microsoft.network/virtualnetworks'
 | extend subnets = properties.subnets
@@ -13,5 +15,5 @@ resources
     | where type == 'microsoft.resources/subscriptions'
     | project subscriptionId, subscriptionName = name
 ) on subscriptionId
-| project subscriptionName, subscriptionId, VNetName, VNetId, VNetAddressSpace, SubnetName, SubnetAddressPrefix
+| project VNetName, VNetId, VNetAddressSpace, SubnetName, SubnetAddressPrefix, subscriptionName, subscriptionId
 | order by VNetAddressSpace asc, SubnetAddressPrefix asc
