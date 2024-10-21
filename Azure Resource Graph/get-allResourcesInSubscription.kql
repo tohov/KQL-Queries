@@ -17,7 +17,7 @@ resources
 // This query will list all the resources in all subscriptions and summarize them by resource type count and fetches the subscription names from other table.
 resources
 | summarize ResourceCount = count() by subscriptionId, ResourceType = type
-//| where ResourceCount >= 5
+//| where ResourceCount >= 10  // Uncomment the line to filter resource types that have fewer resources
 | join kind=inner (
     resourcecontainers
     | where type == 'microsoft.resources/subscriptions'
