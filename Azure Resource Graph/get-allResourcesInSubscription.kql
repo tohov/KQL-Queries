@@ -1,0 +1,27 @@
+// This query will list all the resources filtered by your choice of subscription Ids and summarize them by resource type count.
+// Azure Resource Graph does not support 'let' statement or 'render' operator. To visualize as bar chart, use the 'Charts' button in Resource Graph Explorer
+resources
+| where subscriptionId in ('<subscriptionId1>', '<subscriptionId2>', '<subscriptionId3>')
+| summarize ResourceCount = count() by ResourceType = type
+//| where ResourceCount >= 5 // Uncomment the line to filter resource types that have fewer resources
+| order by ResourceCount desc
+
+
+// This query will list all the resources in all subscriptions and summarize them by resource type count.
+resources
+| summarize ResourceCount = count() by ResourceType = type
+//| where ResourceCount >= 5 // Uncomment the line to filter resource types that have fewer resources
+| order by ResourceCount desc
+
+
+// This query will list all the resources in all subscriptions and summarize them by resource type count and fetches the subscription names from other table.
+resources
+| summarize ResourceCount = count() by subscriptionId, ResourceType = type
+//| where ResourceCount >= 5
+| join kind=inner (
+    resourcecontainers
+    | where type == 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName = name
+) on subscriptionId
+| project subscriptionName, subscriptionId, ResourceType, ResourceCount
+| order by subscriptionName asc, ResourceCount desc
