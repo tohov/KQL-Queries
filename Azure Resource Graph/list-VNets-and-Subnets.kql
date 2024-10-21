@@ -1,0 +1,17 @@
+resources
+| where type == 'microsoft.network/virtualnetworks'
+| extend subnets = properties.subnets
+| mv-expand subnets
+| project VNetName = name, 
+          VNetId = id, 
+          VNetAddressSpace = tostring(properties.addressSpace.addressPrefixes), 
+          SubnetName = subnets.name, 
+          SubnetAddressPrefix = tostring(subnets.properties.addressPrefix), 
+          subscriptionId
+| join kind=inner (
+    resourcecontainers
+    | where type == 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName = name
+) on subscriptionId
+| project subscriptionName, subscriptionId, VNetName, VNetId, VNetAddressSpace, SubnetName, SubnetAddressPrefix
+| order by VNetAddressSpace asc, SubnetAddressPrefix asc
