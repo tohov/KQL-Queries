@@ -10,7 +10,7 @@ policyresources
 // join with resource containers table using 'subscriptionId' key
 | join kind=inner (
     resourcecontainers
-    | where type == 'microsoft.resources/subscriptions' or type == 'microsoft.management/managementgroups'
+    | where type in ('microsoft.resources/subscriptions', 'microsoft.management/managementgroups')
     | project subscriptionId, displayName = name
     ) on subscriptionId
 // list scope, subscription or management group name, subscription id and other information about policies
