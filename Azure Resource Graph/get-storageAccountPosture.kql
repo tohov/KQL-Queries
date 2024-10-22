@@ -1,0 +1,74 @@
+// This query lists storage accounts that have min TLS set to less than TLS1.2
+resources
+| where type == 'microsoft.storage/storageaccounts'
+| extend properties = parse_json(properties), sku = parse_json(sku)
+| project StorageAccountName = name,
+    kind,
+    location,
+    resourceGroup,
+    skuName = sku.name,
+    skuTier = sku.tier,
+    httpsOnly = properties.supportsHttpsTrafficOnly,
+    allowPublicAccess = properties.allowBlobPublicAccess,
+    minTLS = tostring(properties.minimumTlsVersion),
+    networkDefaultAction = properties.networkAcls.defaultAction,
+    networkAclBypass = properties.networkAcls.bypass,
+    subscriptionId
+| join kind=inner (
+    resourcecontainers
+    | where type == 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName = name
+    ) on subscriptionId
+| project StorageAccountName, kind, location, resourceGroup, skuName, skuTier, httpsOnly, minTLS, allowPublicAccess, networkDefaultAction, networkAclBypass, subscriptionName
+| where minTLS in ('TLS1_0', 'TLS1_1')
+| order by subscriptionName asc, minTLS asc
+
+// This query lists storage accounts that have Allow Public Access set to 'true'
+resources
+| where type == 'microsoft.storage/storageaccounts'
+| extend properties = parse_json(properties), sku = parse_json(sku)
+| project StorageAccountName = name,
+    kind,
+    location,
+    resourceGroup,
+    skuName = sku.name,
+    skuTier = sku.tier,
+    httpsOnly = properties.supportsHttpsTrafficOnly,
+    allowPublicAccess = properties.allowBlobPublicAccess,
+    minTLS = tostring(properties.minimumTlsVersion),
+    networkDefaultAction = properties.networkAcls.defaultAction,
+    networkAclBypass = properties.networkAcls.bypass,
+    subscriptionId
+| join kind=inner (
+    resourcecontainers
+    | where type == 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName = name
+    ) on subscriptionId
+| project StorageAccountName, kind, location, resourceGroup, skuName, skuTier, httpsOnly, minTLS, allowPublicAccess, networkDefaultAction, networkAclBypass, subscriptionName
+| where allowPublicAccess == 'true'
+| order by subscriptionName asc, minTLS asc
+
+// This query lists storage accounts that do not require https traffic
+resources
+| where type == 'microsoft.storage/storageaccounts'
+| extend properties = parse_json(properties), sku = parse_json(sku)
+| project StorageAccountName = name,
+    kind,
+    location,
+    resourceGroup,
+    skuName = sku.name,
+    skuTier = sku.tier,
+    httpsOnly = properties.supportsHttpsTrafficOnly,
+    allowPublicAccess = properties.allowBlobPublicAccess,
+    minTLS = tostring(properties.minimumTlsVersion),
+    networkDefaultAction = properties.networkAcls.defaultAction,
+    networkAclBypass = properties.networkAcls.bypass,
+    subscriptionId
+| join kind=inner (
+    resourcecontainers
+    | where type == 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName = name
+    ) on subscriptionId
+| project StorageAccountName, kind, location, resourceGroup, skuName, skuTier, httpsOnly, minTLS, allowPublicAccess, networkDefaultAction, networkAclBypass, subscriptionName
+| where httpsOnly == 'false'
+| order by subscriptionName asc, minTLS asc
