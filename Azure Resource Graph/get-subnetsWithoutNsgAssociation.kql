@@ -1,0 +1,21 @@
+// This query gets all subnets that don't have NSG assiociated
+// Result lists subnet name and its associated subscription name, vnet name and subnet's resource id
+resources
+| where type == 'microsoft.network/virtualnetworks'
+| extend subnets = parse_json(properties).subnets
+| mv-expand subnets
+| project subnetId = tostring(subnets.id), vnetName = name, subnetName = subnets.name, subscriptionId
+| join kind=leftouter (
+    resources
+    | where type == 'microsoft.network/networksecuritygroups'
+    | extend subnets = parse_json(properties).subnets
+    | mv-expand subnets
+    | project nsgSubnetId = tostring(subnets.id)
+    ) on $left.subnetId == $right.nsgSubnetId
+| where nsgSubnetId == ''
+| join kind=inner (
+    resourcecontainers
+    | where type == 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName = name
+    ) on subscriptionId
+| project subscriptionName, vnetName, subnetName, subnetId
