@@ -1,0 +1,14 @@
+// This query counts storage accounts that are using weak TLS and groups them by subscription
+resources
+| where type == 'microsoft.storage/storageaccounts'
+| extend properties = parse_json(properties)
+| project
+    minTLS = tostring(properties.minimumTlsVersion), subscriptionId
+| where minTLS in ('TLS1_0', 'TLS1_1')
+| join kind=inner (
+    resourcecontainers
+    | where type == 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName = name
+    ) on subscriptionId 
+| summarize Count = count() by subscriptionName, subscriptionId
+| order by Count desc 
