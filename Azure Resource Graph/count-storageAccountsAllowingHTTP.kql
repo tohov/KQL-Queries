@@ -1,0 +1,13 @@
+// This query counts storage accounts that are allowing unencrypted http traffic and groups them by subscription
+resources
+| where type == 'microsoft.storage/storageaccounts'
+| extend properties = parse_json(properties)
+| project subscriptionId, httpsOnly = properties.supportsHttpsTrafficOnly 
+| where httpsOnly == 'false'
+| join kind=inner (
+    resourcecontainers
+    | where type == 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName = name
+    ) on subscriptionId 
+| summarize CountOfStrAccAllowingHTTP = count() by subscriptionName, subscriptionId
+| order by CountOfStrAccAllowingHTTP desc 

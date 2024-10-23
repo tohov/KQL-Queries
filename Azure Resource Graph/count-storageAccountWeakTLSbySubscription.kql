@@ -10,5 +10,5 @@ resources
     | where type == 'microsoft.resources/subscriptions'
     | project subscriptionId, subscriptionName = name
     ) on subscriptionId 
-| summarize Count = count() by subscriptionName, subscriptionId
-| order by Count desc 
+| summarize CountOfStrAccUsingWeakTLS = count() by subscriptionName, subscriptionId
+| order by CountOfStrAccUsingWeakTLS desc 
