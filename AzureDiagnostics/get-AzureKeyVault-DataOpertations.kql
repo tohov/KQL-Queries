@@ -1,0 +1,5 @@
+AzureDiagnostics
+| where ResourceType == 'VAULTS'
+| project TimeGenerated, SubscriptionId, Resource, OperationName, CallerIPAddress,
+    ObjectID = identity_claim_http_schemas_microsoft_com_identity_claims_objectidentifier_g,
+    UPN = identity_claim_http_schemas_xmlsoap_org_ws_2005_05_identity_claims_upn_s
